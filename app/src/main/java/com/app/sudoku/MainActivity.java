@@ -41,7 +41,9 @@ import com.google.android.gms.ads.rewarded.RewardedAd;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -106,7 +108,9 @@ public class MainActivity extends AppCompatActivity {
         chronometer.setFormat(getResources().getString(R.string.GameTime) + ": %s");
         chronometer.start(); // 開始計時
 
+
         wrongAnswerMsg = findViewById(R.id.wrongAnswerMsg);
+        wrongAnswerMsg.setText(getResources().getString(R.string.mistake) + wrongAnswerCount + " / 3");
 
         SudokuGenerator generator = new SudokuGenerator();
         int[][] sudokuBoard = generator.getSudokuBoard();
@@ -279,6 +283,8 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, loadAdError.toString());
                         mInterstitialAd = null;
 
+
+                        //LoadAdsErrorDialog();
                     }
                 });
 
@@ -290,6 +296,22 @@ public class MainActivity extends AppCompatActivity {
 
         showExitGameDialog();
 
+    }
+
+    private void LoadAdsErrorDialog() {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.Msg);
+        builder.setMessage("載入失敗，請確定有開啟網路。");
+        builder.setPositiveButton(R.string.Exit, (dialog, which) -> {
+            Intent intent = new Intent(MainActivity.this, StartActivity.class);
+            startActivity(intent);
+            finish();
+
+        });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     private void showExitGameDialog() {
@@ -331,21 +353,22 @@ public class MainActivity extends AppCompatActivity {
         if (answerValue != 0) {
             int selectedNumber = answerValue;
             // 驗證數字輸入
-            if (isValidInput(focusRow, focusCol, selectedNumber)) {
+            if (isValidInput(focusRow, focusCol, selectedNumber)
+                    && selectedNumber == correctSolution[focusRow][focusCol]) {
                 userSolution[focusRow][focusCol] = selectedNumber;
                 // 修改有焦點的
                 adapter.notifyDataSetChanged(); // 通知刷新畫面
-
                 SudokuSolver solver = new SudokuSolver(); //求解用class
                 boolean isWin =  solver.isSudokuSolutionValid(userSolution);
                 if(isWin)showWinGameDialog();
 
             } else {
                 wrongAnswerCount++;
+
                 if(wrongAnswerCount < 3)
                 {
                     ShowSnackbar(getString(R.string.WrongAnswer),Snackbar.LENGTH_SHORT);
-                    wrongAnswerMsg.setText(R.string.mistake);
+                    wrongAnswerMsg.setText(getResources().getString(R.string.mistake) + wrongAnswerCount + " / 3");
                 }
                 else {
                     chronometer.stop();
@@ -396,7 +419,7 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.Msg);
         builder.setMessage(R.string.lost);
-        builder.setPositiveButton(R.string.Continue, (dialog, which) -> {
+        builder.setPositiveButton(R.string.WatchAdsContinue, (dialog, which) -> {
             //看廣告
             if (rewardedAd != null) {
                 Activity activityContext = MainActivity.this;
@@ -416,7 +439,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             wrongAnswerCount = 0;
-            wrongAnswerMsg.setText(R.string.mistake);
+            wrongAnswerMsg.setText(getResources().getString(R.string.mistake) + wrongAnswerCount + " / 3");
 
         });
         builder.setNegativeButton(R.string.Exit, (dialog, which) -> {
@@ -668,7 +691,7 @@ public class MainActivity extends AppCompatActivity {
                 removeNumbers(difficultyLevel);
 
                 // 檢查是否唯一解答
-                if (solver.solveSudoku(sudokuBoard)) {
+                if (solver.hasUniqueSolution(sudokuBoard)) {
                     return sudokuBoard;
                 }
 
@@ -678,6 +701,48 @@ public class MainActivity extends AppCompatActivity {
 
     public class SudokuSolver {
         private static final int SIZE = 9;
+        public boolean hasUniqueSolution(int[][] sudoku) {
+            List<int[][]> solutions = new ArrayList<>();
+            solveSudoku(sudoku, solutions);
+            return solutions.size() == 1;
+        }
+
+        private void solveSudoku(int[][] sudoku, List<int[][]> solutions) {
+            int n = sudoku.length;
+            int m = sudoku[0].length;
+            int[] emptyCell = findEmptyCell(sudoku, n, m);
+
+            if (emptyCell == null) {
+                // 找到一个解
+                int[][] solution = new int[n][m];
+                for (int i = 0; i < n; i++) {
+                    System.arraycopy(sudoku[i], 0, solution[i], 0, m);
+                }
+                solutions.add(solution);
+                return;
+            }
+
+            int row = emptyCell[0];
+            int col = emptyCell[1];
+
+            for (int num = 1; num <= 9; num++) {
+                if (isValidMove(sudoku, row, col, num)) {
+                    sudoku[row][col] = num;
+                    solveSudoku(sudoku, solutions);
+                    sudoku[row][col] = 0; // 回溯
+                }
+            }
+        }
+        private int[] findEmptyCell(int[][] sudoku, int n, int m) {
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < m; j++) {
+                    if (sudoku[i][j] == 0) {
+                        return new int[]{i, j};
+                    }
+                }
+            }
+            return null; // 所有单元格都已填充
+        }
 
         public boolean solveSudoku(int[][] board) {
             for (int row = 0; row < SIZE; row++) {
@@ -700,11 +765,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         public boolean isSudokuSolutionValid(int[][] userSolution) {
-            // 检查是否填满
+            // 檢查是否填滿
             for (int row = 0; row < 9; row++) {
                 for (int col = 0; col < 9; col++) {
                     if (userSolution[row][col] == 0) {
-                        // 发现未填写的单元格
+                        // 發現尚未填寫
                         return false;
                     }
                 }
@@ -736,7 +801,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            // 检查九宫格
+            // 檢查九宮格
             for (int boxRow = 0; boxRow < 3; boxRow++) {
                 for (int boxCol = 0; boxCol < 3; boxCol++) {
                     boolean[] used = new boolean[10];
@@ -744,7 +809,7 @@ public class MainActivity extends AppCompatActivity {
                         for (int col = 3 * boxCol; col < 3 * boxCol + 3; col++) {
                             int num = userSolution[row][col];
                             if (used[num]) {
-                                // 在九宫格中发现重复数字
+                                // 發現重複數字
                                 return false;
                             }
                             used[num] = true;
@@ -753,7 +818,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            // 如果通过了上述所有验证，说明数独答案完整且正确
+            // 通過以上全部，答案正確
             return true;
         }
 
@@ -794,7 +859,7 @@ public class MainActivity extends AppCompatActivity {
 
     public class SudokuAdapter extends BaseAdapter {
         private Context context;
-        private int[][] data; // 数独棋盘数据
+        private int[][] data; // 棋盤數據
         private int filledNumberColor = Color.parseColor("#008000");
         ; // 已填数字的颜色
 
@@ -805,7 +870,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return 81; // 固定为9x9的单元格数量
+            return 81; // 9x9
         }
 
         @Override
@@ -822,10 +887,9 @@ public class MainActivity extends AppCompatActivity {
         public View getView(int position, View convertView, ViewGroup parent) {
             // 在这里创建并返回每个单元格的视图
             TextView textView = new TextView(context);
-            textView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, 100)); // 调整布局参数以适应您的需求
+            textView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, GridView.AUTO_FIT)); // 调整布局参数以适应您的需求
             textView.setGravity(Gravity.CENTER);
             textView.setTextSize(24);
-
 
 
             int row = position / 9;
@@ -836,12 +900,12 @@ public class MainActivity extends AppCompatActivity {
             textView.setBackgroundResource(gridStyle);
 
             if (cellValue != 0) {
-                textView.setText(String.valueOf(cellValue)); // 设置文本
-                // 检查该位置是否与用户解决方案匹配，如果匹配，则设置文本颜色为绿色
+                textView.setText(String.valueOf(cellValue));
+                // 答案正確設定為綠色
                 if (userSolution[row][col] == correctSolution[row][col]) {
-                    textView.setTextColor(filledNumberColor); // 设置已填数字的颜色为绿色
+                    textView.setTextColor(filledNumberColor);
                 } else {
-                    textView.setTextColor(Color.BLACK); // 设置其他数字的颜色为黑色
+                    textView.setTextColor(Color.BLACK);
                 }
 
 
@@ -852,15 +916,15 @@ public class MainActivity extends AppCompatActivity {
             return textView;
 
         }
-        // 计算每个3x3格子的背景颜色
+        // 計算3x3背景顏色
         public int calculateGridColor(int row, int col) {
             int gridRow = row / 3;
             int gridCol = col / 3;
 
 
-            // 根据3x3格子的位置返回对应的背景颜色
+            // 根據3x3格子的位置返回對應的背景顏色
             int gridStyle =  (gridRow * 3 + gridCol) % 2 ;
-            // 返回不同样式的 Drawable 资源
+            // 返回不同樣式 Drawable 資源
             switch (gridStyle) {
                 case 1:
                     return R.drawable.textview_background1; // 藍色
@@ -869,6 +933,7 @@ public class MainActivity extends AppCompatActivity {
                 default:
                     return R.drawable.textview_background2;
             }
+
         }
 
 

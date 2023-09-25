@@ -4,11 +4,12 @@
     <string name="Easy">簡單</string>
     <string name="Hard">困難</string>
     <string name="Expert">專家</string>
-    <string name="mistake">錯誤: 0 / 3</string>
+    <string name="mistake">錯誤: </string>
     <string name="GameTime">遊戲時間</string>
     <string name="Msg">訊息</string>
     <string name="AskExitGame">您確定要退出遊戲嗎?</string>
     <string name="Exit">退出</string>
+    <string name="WatchAdsContinue">觀看廣告並繼續</string>
     <string name="Continue">繼續</string>
     <string name="InputMsg">請選擇輸入欄位!</string>
     <string name="WrongAnswer">答案錯誤!</string>

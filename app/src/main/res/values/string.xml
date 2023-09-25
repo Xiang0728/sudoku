@@ -4,11 +4,12 @@
     <string name="Easy">Easy</string>
     <string name="Hard">Hard</string>
     <string name="Expert">Expert</string>
-    <string name="mistake">Mistakes: 0 / 3</string>
+    <string name="mistake">Mistakes: </string>
     <string name="GameTime">Time</string>
     <string name="Msg">Message</string>
     <string name="AskExitGame">Are you sure you want to exit the game?</string>
     <string name="Exit">Exit</string>
+    <string name="WatchAdsContinue">Watch Ad and Continue</string>
     <string name="Continue">Continue</string>
     <string name="InputMsg">Please select an input field!</string>
     <string name="WrongAnswer">Wrong answer!</string>
