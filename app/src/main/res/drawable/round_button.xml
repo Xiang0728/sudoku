@@ -1,0 +1,13 @@
+<!-- res/drawable/round_button.xml -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="oval">
+            <solid android:color="#FFFFFF" /> <!-- 按下时的背景颜色-->
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#FFFFFF" /> <!-- 默认的背景颜色 -->
+        </shape>
+    </item>
+</selector>

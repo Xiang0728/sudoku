@@ -1,0 +1,6 @@
+<!-- res/drawable/cell_background.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <!-- 这里定义3x3格子的背景颜色 -->
+    <solid android:color="#FFC0CB" /> <!-- 设置为粉红色，你可以更改颜色 -->
+</shape>

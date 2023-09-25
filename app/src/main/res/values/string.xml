@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Sudoku</string>
+    <string name="Normal">Normal</string>
+    <string name="Easy">Easy</string>
+    <string name="Hard">Hard</string>
+    <string name="Expert">Expert</string>
+    <string name="mistake">Mistakes: 0 / 3</string>
+    <string name="GameTime">Time</string>
+    <string name="Msg">Message</string>
+    <string name="AskExitGame">Are you sure you want to exit the game?</string>
+    <string name="Exit">Exit</string>
+    <string name="Continue">Continue</string>
+    <string name="InputMsg">Please select an input field!</string>
+    <string name="WrongAnswer">Wrong answer!</string>
+    <string name="win_split1">Challenge successful, took</string>
+    <string name="win_split2">seconds</string>
+    <string name="Share">Share with friends</string>
+    <string name="lost">Challenge failed</string>
+    <string name="NoHint">No more hint available</string>
+    <string name="WatchAds">Watch an ad to get a hint</string>
+    <string name="ShareAppName">Sudoku</string>
+</resources>

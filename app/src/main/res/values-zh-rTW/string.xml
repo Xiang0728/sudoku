@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Sudoku</string>
+    <string name="Normal">普通</string>
+    <string name="Easy">簡單</string>
+    <string name="Hard">困難</string>
+    <string name="Expert">專家</string>
+    <string name="mistake">錯誤: 0 / 3</string>
+    <string name="GameTime">遊戲時間</string>
+    <string name="Msg">訊息</string>
+    <string name="AskExitGame">您確定要退出遊戲嗎?</string>
+    <string name="Exit">退出</string>
+    <string name="Continue">繼續</string>
+    <string name="InputMsg">請選擇輸入欄位!</string>
+    <string name="WrongAnswer">答案錯誤!</string>
+    <string name="win_split1">挑戰成功，花費</string>
+    <string name="win_split2">秒</string>
+    <string name="Share">分享給好友</string>
+    <string name="lost">挑戰失敗</string>
+    <string name="NoHint">已經無提示次數</string>
+    <string name="WatchAds">看廣告並獲得提示</string>
+    <string name="ShareAppName">Sudoku</string>
+</resources>

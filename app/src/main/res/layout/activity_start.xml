@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:background="@drawable/background"
+    >
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="120dp"
+        android:fontFamily="casual"
+        android:gravity="center"
+        android:text="Sudoku"
+        android:textColor="#517783"
+        android:textSize="46sp"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/buttonEasy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/Easy"
+        android:onClick="onButtonClick"
+        android:background="@drawable/level_button_background"
+        android:layout_marginBottom="30dp"
+        android:textSize="18sp"
+        android:textColor="#517783"
+        />
+
+    <Button
+        android:id="@+id/buttonNormal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/Normal"
+        android:onClick="onButtonClick"
+        android:background="@drawable/level_button_background"
+        android:layout_marginBottom="30dp"
+        android:textSize="18sp"
+        android:textColor="#517783"
+        />
+
+    <Button
+        android:id="@+id/buttonHard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/Hard"
+        android:onClick="onButtonClick"
+        android:background="@drawable/level_button_background"
+        android:layout_marginBottom="30dp"
+        android:textSize="18sp"
+        android:textColor="#517783"
+        />
+    <Button
+        android:id="@+id/buttonExpert"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/Expert"
+        android:onClick="onButtonClick"
+        android:background="@drawable/level_button_background"
+        android:layout_marginBottom="30dp"
+        android:textSize="18sp"
+        android:textColor="#517783"
+        />
+
+
+</LinearLayout>
