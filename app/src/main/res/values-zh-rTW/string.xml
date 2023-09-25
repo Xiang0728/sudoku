@@ -19,5 +19,6 @@
     <string name="lost">挑戰失敗</string>
     <string name="NoHint">已經無提示次數</string>
     <string name="WatchAds">看廣告並獲得提示</string>
+    <string name="ErrorAdsMsg">很抱歉，尚無廣告可觀看或網路連線失敗。</string>
     <string name="ShareAppName">Sudoku</string>
 </resources>

@@ -160,8 +160,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void InitRewardedAd()
     {
+
+
+
         AdRequest adRequest = new AdRequest.Builder().build();
-        RewardedAd.load(this, "ca-app-pub-8275397647362849/8390624394",
+        RewardedAd.load(this, "ca-app-pub-8275397647362849/9617706466",
                 adRequest, new RewardedAdLoadCallback() {
                     @Override
                     public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
@@ -209,11 +212,8 @@ public class MainActivity extends AppCompatActivity {
                                 Log.d(TAG, "Ad showed fullscreen content.");
                             }
                         });
-
-
-
-                    }
-                });
+                }
+        });
 
 
     }
@@ -302,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.Msg);
-        builder.setMessage("載入失敗，請確定有開啟網路。");
+        builder.setMessage(R.string.ErrorAdsMsg);
         builder.setPositiveButton(R.string.Exit, (dialog, which) -> {
             Intent intent = new Intent(MainActivity.this, StartActivity.class);
             startActivity(intent);
@@ -432,10 +432,9 @@ public class MainActivity extends AppCompatActivity {
                     //計時開始，並增加一個提示
                     chronometer.start();
 
+                    InitRewardedAd();
+
                 });
-            } else {
-                Log.d(TAG, "The rewarded ad wasn't ready yet.");
-                InitRewardedAd();
             }
 
             wrongAnswerCount = 0;
@@ -469,16 +468,13 @@ public class MainActivity extends AppCompatActivity {
                     int rewardAmount = rewardItem.getAmount();
                     String rewardType = rewardItem.getType();
 
-                    //計時開始，並增加一個提示
-                    chronometer.start();
-                    hintCount ++;
-                });
-            } else {
-                Log.d(TAG, "The rewarded ad wasn't ready yet.");
-                InitRewardedAd();
-            }
-            //
+                    //並增加一個提示
+                    hintCount++;
 
+                    InitRewardedAd();
+                });
+            }
+            chronometer.start();
             dialog.dismiss();
         });
         builder.setNegativeButton(R.string.Continue, (dialog, which) -> {
