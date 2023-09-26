@@ -10,9 +10,12 @@
     <color name="gray">#808080</color>
 
 
-    <color name="focusedColor">#7BBFEA</color> <!-- 焦點時的顏色 -->
+    <color name="focusedColor">#8698FD</color> <!-- 焦點時的顏色 -->
     <color name="defaultColor">#FFFFFF</color> <!-- 預設顏色 -->
 
-    <color name="grid_line_color">#000000</color> <!-- 网格线颜色，这里设置为黑色 -->
+    <color name="grid_line_color">#D5D5D5</color> <!-- 網格線顏色 -->
+
+    <color name="number_color">#2E47A2</color> <!-- 數字答案顏色 -->
+
 
 </resources>

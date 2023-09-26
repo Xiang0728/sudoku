@@ -388,6 +388,8 @@ public class MainActivity extends AppCompatActivity {
             if (isValidInput(focusRow, focusCol, selectedNumber)
                     && selectedNumber == correctSolution[focusRow][focusCol]) {
                 userSolution[focusRow][focusCol] = selectedNumber;
+                //取消焦點
+                focusedTextView = null;
                 // 修改有焦點的
                 adapter.notifyDataSetChanged(); // 通知刷新畫面
                 SudokuSolver solver = new SudokuSolver(); //求解用class
@@ -407,6 +409,8 @@ public class MainActivity extends AppCompatActivity {
                     showLostGameDialog();
                 }
             }
+
+
         }
 
     }
