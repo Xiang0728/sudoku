@@ -47,11 +47,7 @@ import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int EASY = 0; // 簡單難度
-    private static final int MEDIUM = 1; // 中等難度
-    private static final int HARD = 2; // 困難難度
-    private static final int EXPERT = 3; // 專家難度
-    private int difficultyLevel = EASY; // 預設難度為簡單
+
     private SudokuAdapter adapter; // 適配器
     private int[][] userSolution = new int[9][9]; // 用戶填寫的數獨解答
     private int[][] correctSolution = new int[9][9]; // 正確的數獨解答
@@ -60,13 +56,12 @@ public class MainActivity extends AppCompatActivity {
     private TextView focusedTextView = null; // 當前獲得焦點的文本視圖
     private int focusRow = 0; // 當前焦點所在行
     private int focusCol = 0; // 當前焦點所在列
-    private int hintCount = 1; // 提示次數
+    private int hintCount = 1000; // 提示次數
     private Chronometer chronometer; // 計時器
     private int wrongAnswerCount = 0; // 錯誤答案次數
     private TextView wrongAnswerMsg; // 錯誤答案消息
     private Snackbar snackbar; // Snackbar
     private String snackbarLastMsg = ""; // 上一條Snackbar消息
-    private AdView mAdView; // 橫幅廣告視圖
     private RewardedAd rewardedAd; // 激勵廣告
     private InterstitialAd mInterstitialAd; // 插頁式廣告
     private final String TAG = "MainActivity"; // 日誌標籤
@@ -74,8 +69,8 @@ public class MainActivity extends AppCompatActivity {
     private String bannerAdId; // 橫幅廣告ID
     private String rewardedAdId; // 激勵廣告ID
     private String interstitialAdId; // 插頁式廣告ID
+    private SudokuGenerator generator;
 
-    long test=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         // 獲取難度
-        difficultyLevel = getIntent().getIntExtra("difficultyLevel", 0);
+        int difficultyLevel = getIntent().getIntExtra("difficultyLevel", 0);
 
         // 初始化遊戲界面
         GridView gameBoard = findViewById(R.id.gameBoard);
@@ -122,9 +117,9 @@ public class MainActivity extends AppCompatActivity {
         wrongAnswerMsg.setText(getResources().getString(R.string.mistake) + wrongAnswerCount + " / 3");
 
         // 生成遊戲板
-        SudokuGenerator generator = new SudokuGenerator();
+        generator = new SudokuGenerator(difficultyLevel);
         int[][] sudokuBoard = generator.getSudokuBoard();
-        adapter = new SudokuAdapter(this, userSolution);
+        adapter = new SudokuAdapter(this, sudokuBoard);
         gameBoard.setAdapter(adapter);
 
         // 初始化計時器
@@ -504,150 +499,87 @@ public class MainActivity extends AppCompatActivity {
 
     public class SudokuGenerator {
         private static final int SIZE = 9;
+        private static final int EASY = 0;
+        private static final int MEDIUM = 1;
+        private static final int HARD = 2;
+        private static final int EXPERT = 3;
+
         private int[][] board;
+        private Random random;
 
-        public SudokuGenerator() {
 
+        public SudokuGenerator(int difficultyLevel) {
             board = new int[SIZE][SIZE];
-            generateFirstRow(); // 隨機生成第一排數字
-            board = generateSudokuBoard(difficultyLevel);
-
-            // 複製一份給使用者輸入使用
-            for (int i = 0; i < SIZE; i++) {
-                System.arraycopy(board[i], 0, userSolution[i], 0, SIZE);
-            }
+            random = new Random();
+            generateSudoku();
             removeNumbers(difficultyLevel);
-
-
+            SudokuSolver solver = new SudokuSolver();
         }
 
-        private void generateFirstRow() {
-            Random random = new Random();
-            for (int i = 1; i <= SIZE; i++) {
-                int num;
-                do {
-                    num = random.nextInt(SIZE) + 1;
-                } while (!isValid(board, 0, i - 1, num));
-                board[0][i - 1] = num;
+        private void generateSudoku() {
+            SudokuSolver solver = new SudokuSolver();
+            boolean uniqueSolutionFound = false;
+
+            while (!uniqueSolutionFound) {
+                clearBoard(); // 清空数独板
+                solveSudoku(0, 0); // 生成一个数独
+
+                if (solver.hasUniqueSolution(board)) {
+                    uniqueSolutionFound = true; // 找到唯一解，退出循环
+                }
             }
         }
-
-        private boolean isValid(int[][] board, int row, int col, int num) {
-            // 檢查行是否有相同數字
+        private void clearBoard() {
+            // 将数独板的所有单元格设置为0或其他初始值
             for (int i = 0; i < SIZE; i++) {
-                if (board[row][i] == num) {
-                    return false;
+                for (int j = 0; j < SIZE; j++) {
+                    board[i][j] = 0; // 或其他初始值
                 }
             }
-
-            // 檢查列是否有相同數字
-            for (int i = 0; i < SIZE; i++) {
-                if (board[i][col] == num) {
-                    return false;
-                }
-            }
-
-            // 檢查3x3方格是否有相同數字
-            int startRow = row - row % 3;
-            int startCol = col - col % 3;
-            for (int i = 0; i < 3; i++) {
-                for (int j = 0; j < 3; j++) {
-                    if (board[startRow + i][startCol + j] == num) {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
         }
 
         private boolean solveSudoku(int row, int col) {
             if (row == SIZE) {
                 row = 0;
                 if (++col == SIZE) {
-                    return true;
+                    return true; // 解决整个数独
                 }
             }
             if (board[row][col] != 0) {
                 return solveSudoku(row + 1, col);
             }
-            for (int val = 1; val <= SIZE; ++val) {
-                if (isValid(board, row, col, val)) {
-                    board[row][col] = val;
+
+            int[] numbers = generateShuffledNumbers();
+            SudokuSolver solver = new SudokuSolver();
+            for (int num : numbers) {
+                if (solver.isValidMove(board,row, col, num)) {
+                    board[row][col] = num;
                     if (solveSudoku(row + 1, col)) {
                         return true;
                     }
-                    board[row][col] = 0;
+                    board[row][col] = 0; // 回溯
                 }
             }
+
             return false;
         }
 
-
-        private boolean fillSudokuBoard(int[][] board) {
-            int SIZE = board.length;
-
-            for (int row = 1; row < SIZE; row++) {
-                for (int col = 0; col < SIZE; col++) {
-                    if (board[row][col] == 0) {
-                        for (int num = 1; num <= SIZE; num++) {
-                            if (isValidMove(board, row, col, num)) {
-                                board[row][col] = num; // 寫入數字
-
-                                if (fillSudokuBoard(board)) { // 填充下一個
-                                    return true;
-                                }
-
-                                board[row][col] = 0; // 無法填入，則清除
-                            }
-                        }
-                        return false; // 填入失敗
-                    }
-                }
+        private int[] generateShuffledNumbers() {
+            int[] numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+            for (int i = numbers.length - 1; i > 0; i--) {
+                int j = random.nextInt(i + 1);
+                int temp = numbers[i];
+                numbers[i] = numbers[j];
+                numbers[j] = temp;
             }
-            return true; // 全部成功
+            return numbers;
         }
 
-        private boolean isValidMove(int[][] board, int row, int col, int num) {
-            // 檢查行、列、3x3方格
-            return !usedInRow(board, row, num) && !usedInCol(board, col, num) && !usedInBox(board, row - row % 3, col - col % 3, num);
-        }
-
-        private boolean usedInRow(int[][] board, int row, int num) {
-            for (int col = 0; col < board.length; col++) {
-                if (board[row][col] == num) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private boolean usedInCol(int[][] board, int col, int num) {
-            for (int row = 0; row < board.length; row++) {
-                if (board[row][col] == num) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private boolean usedInBox(int[][] board, int boxStartRow, int boxStartCol, int num) {
-            for (int row = 0; row < 3; row++) {
-                for (int col = 0; col < 3; col++) {
-                    if (board[row + boxStartRow][col + boxStartCol] == num) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
 
 
         private void removeNumbers(int difficultyLevel) {
-            Random random = new Random();
             int minNumbersToRemove = 0;
             int maxNumbersToRemove = 0;
-
 
             if (difficultyLevel == EASY) {
                 minNumbersToRemove = 20;
@@ -658,14 +590,12 @@ public class MainActivity extends AppCompatActivity {
             } else if (difficultyLevel == HARD) {
                 minNumbersToRemove = 40;
                 maxNumbersToRemove = 50;
-            }else if (difficultyLevel == EXPERT) {
+            } else if (difficultyLevel == EXPERT) {
                 minNumbersToRemove = 64;
                 maxNumbersToRemove = 64;
             }
 
-
             int numbersToRemove = random.nextInt(maxNumbersToRemove - minNumbersToRemove + 1) + minNumbersToRemove;
-
 
             Set<Integer> removedIndices = new HashSet<>();
 
@@ -677,37 +607,17 @@ public class MainActivity extends AppCompatActivity {
                 int index = row * SIZE + col;
                 if (!removedIndices.contains(index)) {
                     removedIndices.add(index);
-                    correctSolution[row][col] = userSolution[row][col];
-                    userSolution[row][col] = 0;
+                    correctSolution[row][col] = board[row][col];
+                    board[row][col] = 0;
                 }
             }
-
-
         }
 
         public int[][] getSudokuBoard() {
+            userSolution = board;
             return board;
         }
 
-        private int[][] generateSudokuBoard(int difficultyLevel) {
-            int[][] sudokuBoard = new int[SIZE][SIZE];
-
-            SudokuSolver solver = new SudokuSolver();
-
-            while (true) {
-                // 填滿數字
-                fillSudokuBoard(sudokuBoard);
-
-                // 隨機刪除數字
-                removeNumbers(difficultyLevel);
-
-                // 檢查是否唯一解答
-                if (solver.hasUniqueSolution(sudokuBoard)) {
-                    return sudokuBoard;
-                }
-
-            }
-        }
     }
 
     public class SudokuSolver {
@@ -814,7 +724,7 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
 
-        private boolean isValidMove(int[][] board, int row, int col, int num) {
+        public boolean isValidMove(int[][] board, int row, int col, int num) {
             return !usedInRow(board, row, num) && !usedInCol(board, col, num) && !usedInBox(board, row - row % 3, col - col % 3, num);
         }
 
@@ -847,6 +757,7 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
     }
+
 
 
     public class SudokuAdapter extends BaseAdapter {
@@ -1036,6 +947,10 @@ public class MainActivity extends AppCompatActivity {
         userSolution[row][col] = correctSolution[row][col];
         adapter.notifyDataSetChanged(); // 刷新介面
         hintCount--;
+
+        SudokuSolver solver = new SudokuSolver(); //求解用class
+        boolean isWin =  solver.isSudokuSolutionValid(userSolution);
+        if(isWin)showWinGameDialog();
     }
 
     public void ShowSnackbar( String msg, int length) {
