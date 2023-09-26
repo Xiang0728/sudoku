@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -17,26 +16,23 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 
 import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
 import com.google.android.gms.ads.MobileAds;
-import com.google.android.gms.ads.OnUserEarnedRewardListener;
-import com.google.android.gms.ads.initialization.InitializationStatus;
-import com.google.android.gms.ads.initialization.OnInitializationCompleteListener;
 import com.google.android.gms.ads.interstitial.InterstitialAd;
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
-import com.google.android.gms.ads.rewarded.RewardItem;
 import com.google.android.gms.ads.rewarded.RewardedAd;
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 import com.google.android.material.snackbar.Snackbar;
@@ -46,50 +42,64 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int EASY = 0;
-    private static final int MEDIUM = 1;
-    private static final int HARD = 2;
-    private static final int EXPERT = 3;
+    private static final int EASY = 0; // 簡單難度
+    private static final int MEDIUM = 1; // 中等難度
+    private static final int HARD = 2; // 困難難度
+    private static final int EXPERT = 3; // 專家難度
+    private int difficultyLevel = EASY; // 預設難度為簡單
+    private SudokuAdapter adapter; // 適配器
+    private int[][] userSolution = new int[9][9]; // 用戶填寫的數獨解答
+    private int[][] correctSolution = new int[9][9]; // 正確的數獨解答
+    private int answerValue = 0; // 答案數值
 
-    private int difficultyLevel = EASY;
-    private SudokuAdapter adapter;
-    private int[][] userSolution = new int[9][9];
-    private int[][] correctSolution = new int[9][9];
-    private int answerValue = 0;
-
-    private TextView focusedTextView = null;
-    private int focusRow = 0;
-    private int focusCol = 0;
-    private int hintCount = 1;
-    private Chronometer chronometer;
-    private int wrongAnswerCount = 0;
-    private TextView wrongAnswerMsg;
-    private Snackbar snackbar;
-    private String snackbarLastMsg = "";
-    private AdView mAdView;
-    private RewardedAd rewardedAd;
-    private InterstitialAd mInterstitialAd;
-    private final String TAG = "MainActivity";
-    private SharedPreferences gameinfo;
-
+    private TextView focusedTextView = null; // 當前獲得焦點的文本視圖
+    private int focusRow = 0; // 當前焦點所在行
+    private int focusCol = 0; // 當前焦點所在列
+    private int hintCount = 1; // 提示次數
+    private Chronometer chronometer; // 計時器
+    private int wrongAnswerCount = 0; // 錯誤答案次數
+    private TextView wrongAnswerMsg; // 錯誤答案消息
+    private Snackbar snackbar; // Snackbar
+    private String snackbarLastMsg = ""; // 上一條Snackbar消息
+    private AdView mAdView; // 橫幅廣告視圖
+    private RewardedAd rewardedAd; // 激勵廣告
+    private InterstitialAd mInterstitialAd; // 插頁式廣告
+    private final String TAG = "MainActivity"; // 日誌標籤
+    private SharedPreferences gameinfo; // 遊戲信息存儲
+    private String bannerAdId; // 橫幅廣告ID
+    private String rewardedAdId; // 激勵廣告ID
+    private String interstitialAdId; // 插頁式廣告ID
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //廣告
-        mAdView = findViewById(R.id.adView);
-        AdRequest adRequest = new AdRequest.Builder().build();
-        mAdView.loadAd(adRequest);
-        initInterstitialAd();
-        InitRewardedAd();
+        // DEBUG
+        if (BuildConfig.IS_DEBUG_MODE) {
+            bannerAdId = "ca-app-pub-3940256099942544/6300978111";
+            rewardedAdId = "ca-app-pub-3940256099942544/5224354917";
+            interstitialAdId = "ca-app-pub-3940256099942544/1033173712";
+        } else {
 
-        //
+            bannerAdId = "ca-app-pub-8275397647362849/1721274267";
+            rewardedAdId = "ca-app-pub-8275397647362849/8390624394";
+            interstitialAdId = "ca-app-pub-8275397647362849/9617706466";
+        }
+
+        // 初始化廣告
+        MobileAds.initialize(this, initializationStatus -> {
+
+            InitBannerAd();
+            initInterstitialAd();
+            InitRewardedAd();
+        });
+
+
+        // 紀錄遊戲次數
         gameinfo = getSharedPreferences("gameinfo", MODE_PRIVATE);
         SharedPreferences.Editor editor = gameinfo.edit();
         int playTimes = gameinfo.getInt("playTimes",0);
@@ -101,9 +111,8 @@ public class MainActivity extends AppCompatActivity {
         // 獲取難度
         difficultyLevel = getIntent().getIntExtra("difficultyLevel", 0);
 
+        // 初始化遊戲界面和計時器
         GridView gameBoard = findViewById(R.id.gameBoard);
-
-
         chronometer = findViewById(R.id.chronometer);
         chronometer.setFormat(getResources().getString(R.string.GameTime) + ": %s");
         chronometer.start(); // 開始計時
@@ -112,20 +121,13 @@ public class MainActivity extends AppCompatActivity {
         wrongAnswerMsg = findViewById(R.id.wrongAnswerMsg);
         wrongAnswerMsg.setText(getResources().getString(R.string.mistake) + wrongAnswerCount + " / 3");
 
+        // 生成遊戲板
         SudokuGenerator generator = new SudokuGenerator();
         int[][] sudokuBoard = generator.getSudokuBoard();
         adapter = new SudokuAdapter(this, userSolution);
         gameBoard.setAdapter(adapter);
 
-        ImageView btn_hint = findViewById(R.id.btn_hint);
-        ImageView btn_back= findViewById(R.id.btn_back);
-        btn_hint.setOnClickListener(v -> {
-            generateHint();
-        });
-        btn_back.setOnClickListener(v -> {
-            showExitGameDialog();
-        });
-
+        // 遊戲版事件
         gameBoard.setOnItemClickListener((parent, view, position, id) -> {
             int row = position / 9;
             int col = position % 9;
@@ -135,7 +137,6 @@ public class MainActivity extends AppCompatActivity {
                 int gridStyle =  adapter.calculateGridColor(focusRow, focusCol);
                 focusedTextView.setBackgroundResource(gridStyle);
             }
-
 
             focusedTextView = (TextView) view;
 
@@ -149,22 +150,53 @@ public class MainActivity extends AppCompatActivity {
             focusedTextView.setBackgroundResource(R.drawable.textview_focused_background);
         });
 
-        MobileAds.initialize(this, new OnInitializationCompleteListener() {
-            @Override
-            public void onInitializationComplete(InitializationStatus initializationStatus) {
-            }
+        // 設置提示、返回按鈕
+        ImageView btn_hint = findViewById(R.id.btn_hint);
+        ImageView btn_back= findViewById(R.id.btn_back);
+        btn_hint.setOnClickListener(v -> {
+            generateHint();
+        });
+        btn_back.setOnClickListener(v -> {
+            showExitGameDialog();
         });
 
 
+
+
+
+
+    }
+
+    private void InitBannerAd() {
+        // 創建AdView並設置廣告單元ID
+        AdView mAdView = new AdView(this);
+        mAdView.setAdUnitId(bannerAdId); // 設置廣告單元ID
+
+        AdSize adSize = AdSize.BANNER; // 或其他合適的廣告尺寸
+        mAdView.setAdSize(adSize);
+
+        // 設置AdView的佈局參數
+        RelativeLayout.LayoutParams adParams = new RelativeLayout.LayoutParams(
+                RelativeLayout.LayoutParams.MATCH_PARENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT
+        );
+        adParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM); // 放置廣告在底部
+        mAdView.setLayoutParams(adParams);
+
+        // 添加AdView到佈局中
+        RelativeLayout layout = findViewById(R.id.ad_container); // 替換為你的佈局ID
+        layout.addView(mAdView);
+
+        // 加載廣告
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
     }
 
     private void InitRewardedAd()
     {
 
-
-
         AdRequest adRequest = new AdRequest.Builder().build();
-        RewardedAd.load(this, "ca-app-pub-8275397647362849/9617706466",
+        RewardedAd.load(this, rewardedAdId,
                 adRequest, new RewardedAdLoadCallback() {
                     @Override
                     public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
@@ -222,7 +254,7 @@ public class MainActivity extends AppCompatActivity {
     {
         AdRequest adRequest = new AdRequest.Builder().build();
 
-        InterstitialAd.load(this,"ca-app-pub-8275397647362849/9617706466", adRequest,
+        InterstitialAd.load(this,interstitialAdId, adRequest,
                 new InterstitialAdLoadCallback() {
                     @Override
                     public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
@@ -709,7 +741,7 @@ public class MainActivity extends AppCompatActivity {
             int[] emptyCell = findEmptyCell(sudoku, n, m);
 
             if (emptyCell == null) {
-                // 找到一个解
+                // 找到一個解
                 int[][] solution = new int[n][m];
                 for (int i = 0; i < n; i++) {
                     System.arraycopy(sudoku[i], 0, solution[i], 0, m);
@@ -737,28 +769,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
-            return null; // 所有单元格都已填充
+            return null; // 所有單元格都已填滿
         }
 
-        public boolean solveSudoku(int[][] board) {
-            for (int row = 0; row < SIZE; row++) {
-                for (int col = 0; col < SIZE; col++) {
-                    if (board[row][col] == 0) {
-                        for (int num = 1; num <= SIZE; num++) {
-                            if (isValidMove(board, row, col, num)) {
-                                board[row][col] = num;
-                                if (solveSudoku(board)) {
-                                    return true;
-                                }
-                                board[row][col] = 0; // 回溯
-                            }
-                        }
-                        return false; // 如果无法填入任何数字，返回false
-                    }
-                }
-            }
-            return true; // 所有单元格都已填充，返回true
-        }
 
         public boolean isSudokuSolutionValid(int[][] userSolution) {
             // 檢查是否填滿
@@ -995,9 +1008,9 @@ public class MainActivity extends AppCompatActivity {
             col = random.nextInt(9);
         } while (userSolution[row][col] != 0);
 
-        // 将正确解决方案的数字填入
+        // 填入正確答案
         userSolution[row][col] = correctSolution[row][col];
-        adapter.notifyDataSetChanged(); // 刷新界面以显示提示
+        adapter.notifyDataSetChanged(); // 刷新介面
         hintCount--;
     }
 
