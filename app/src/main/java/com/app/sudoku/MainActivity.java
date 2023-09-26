@@ -9,9 +9,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -73,6 +75,8 @@ public class MainActivity extends AppCompatActivity {
     private String rewardedAdId; // 激勵廣告ID
     private String interstitialAdId; // 插頁式廣告ID
 
+    long test=0;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,12 +115,8 @@ public class MainActivity extends AppCompatActivity {
         // 獲取難度
         difficultyLevel = getIntent().getIntExtra("difficultyLevel", 0);
 
-        // 初始化遊戲界面和計時器
+        // 初始化遊戲界面
         GridView gameBoard = findViewById(R.id.gameBoard);
-        chronometer = findViewById(R.id.chronometer);
-        chronometer.setFormat(getResources().getString(R.string.GameTime) + ": %s");
-        chronometer.start(); // 開始計時
-
 
         wrongAnswerMsg = findViewById(R.id.wrongAnswerMsg);
         wrongAnswerMsg.setText(getResources().getString(R.string.mistake) + wrongAnswerCount + " / 3");
@@ -127,28 +127,11 @@ public class MainActivity extends AppCompatActivity {
         adapter = new SudokuAdapter(this, userSolution);
         gameBoard.setAdapter(adapter);
 
-        // 遊戲版事件
-        gameBoard.setOnItemClickListener((parent, view, position, id) -> {
-            int row = position / 9;
-            int col = position % 9;
+        // 初始化計時器
+        chronometer = findViewById(R.id.chronometer);
+        chronometer.setFormat(getResources().getString(R.string.GameTime) + ": %s");
+        chronometer.start();
 
-            // 判斷是否有焦點，回復原本樣式
-            if (focusedTextView != null) {
-                int gridStyle =  adapter.calculateGridColor(focusRow, focusCol);
-                focusedTextView.setBackgroundResource(gridStyle);
-            }
-
-            focusedTextView = (TextView) view;
-
-            if (!focusedTextView.getText().toString().equals("")) {
-                focusedTextView = null;
-                return;
-            }
-
-            focusRow = row;
-            focusCol = col;
-            focusedTextView.setBackgroundResource(R.drawable.textview_focused_background);
-        });
 
         // 設置提示、返回按鈕
         ImageView btn_hint = findViewById(R.id.btn_hint);
@@ -159,10 +142,6 @@ public class MainActivity extends AppCompatActivity {
         btn_back.setOnClickListener(v -> {
             showExitGameDialog();
         });
-
-
-
-
 
 
     }
@@ -873,8 +852,10 @@ public class MainActivity extends AppCompatActivity {
     public class SudokuAdapter extends BaseAdapter {
         private Context context;
         private int[][] data; // 棋盤數據
-        private int filledNumberColor = Color.parseColor("#008000");
-        ; // 已填数字的颜色
+        private int filledNumberColor = Color.parseColor("#008000");// 已填数字的颜色
+
+        // 添加一个缓存用来存储已计算的单元格背景颜色
+        private SparseArray<Integer> gridColorCache = new SparseArray<>();
 
         public SudokuAdapter(Context context, int[][] data) {
             this.context = context;
@@ -898,19 +879,41 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            // 在这里创建并返回每个单元格的视图
-            TextView textView = new TextView(context);
-            textView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, GridView.AUTO_FIT)); // 调整布局参数以适应您的需求
-            textView.setGravity(Gravity.CENTER);
-            textView.setTextSize(24);
+            // 創建或複用每個單元格的視圖
+            TextView textView;
 
+            if (convertView == null) {
+                // 如果沒有可複用的視圖，創建一個新的
+                textView = new TextView(context);
+                textView.setLayoutParams(new GridView.LayoutParams(GridView.AUTO_FIT, GridView.AUTO_FIT));
+                textView.setGravity(Gravity.CENTER);
+                textView.setTextSize(24);
+            } else {
+                // 否則，複用已存在的視圖
+                textView = (TextView) convertView;
+            }
 
             int row = position / 9;
             int col = position % 9;
             int cellValue = data[row][col];
 
-            int gridStyle = calculateGridColor(row, col);
-            textView.setBackgroundResource(gridStyle);
+            // 首先嘗試從快取中獲取背景顏色
+            int cachedColor = gridColorCache.get(position, -1);
+
+            if (cachedColor != -1) {
+                // 如果快取中有背景顏色，則直接使用它
+                textView.setBackgroundResource(cachedColor);
+            } else {
+                // 如果快取中沒有背景顏色，則計算並存儲到快取中
+                int gridStyle = calculateGridColor(row, col);
+                gridColorCache.put(position, gridStyle);
+                textView.setBackgroundResource(gridStyle);
+            }
+
+            textView.setOnClickListener(v -> {
+                // 處理格子點擊事件
+                handleCellClick(row, col, textView);
+            });
 
             if (cellValue != 0) {
                 textView.setText(String.valueOf(cellValue));
@@ -920,15 +923,32 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     textView.setTextColor(Color.BLACK);
                 }
-
-
-            } else {
-
-                return textView;
             }
-            return textView;
 
+            return textView;
         }
+
+        private void handleCellClick(int row, int col, TextView textView) {
+            // 處理格子點擊事件
+            if (focusedTextView != null) {
+                int gridStyle = adapter.calculateGridColor(focusRow, focusCol);
+                focusedTextView.setBackgroundResource(gridStyle);
+            }
+
+            focusedTextView = textView;
+
+            if (!focusedTextView.getText().toString().equals("")) {
+                focusedTextView = null;
+                return;
+            }
+
+            focusRow = row;
+            focusCol = col;
+
+            focusedTextView.setBackgroundResource(R.drawable.textview_focused_background);
+        }
+
+
         // 計算3x3背景顏色
         public int calculateGridColor(int row, int col) {
             int gridRow = row / 3;
