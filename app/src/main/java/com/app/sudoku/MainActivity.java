@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView focusedTextView = null; // 當前獲得焦點的文本視圖
     private int focusRow = 0; // 當前焦點所在行
     private int focusCol = 0; // 當前焦點所在列
-    private int hintCount = 1000; // 提示次數
+    private int hintCount = 1; // 提示次數
     private Chronometer chronometer; // 計時器
     private int wrongAnswerCount = 0; // 錯誤答案次數
     private TextView wrongAnswerMsg; // 錯誤答案消息
