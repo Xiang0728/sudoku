@@ -513,7 +513,6 @@ public class MainActivity extends AppCompatActivity {
             random = new Random();
             generateSudoku();
             removeNumbers(difficultyLevel);
-            SudokuSolver solver = new SudokuSolver();
         }
 
         private void generateSudoku() {
@@ -521,19 +520,19 @@ public class MainActivity extends AppCompatActivity {
             boolean uniqueSolutionFound = false;
 
             while (!uniqueSolutionFound) {
-                clearBoard(); // 清空数独板
-                solveSudoku(0, 0); // 生成一个数独
+                clearBoard(); // 清空數獨板
+                solveSudoku(0, 0);// 產生一個數獨
 
                 if (solver.hasUniqueSolution(board)) {
-                    uniqueSolutionFound = true; // 找到唯一解，退出循环
+                    uniqueSolutionFound = true; // 找到唯一解，退出循環
                 }
             }
         }
         private void clearBoard() {
-            // 将数独板的所有单元格设置为0或其他初始值
+            // 將數獨板的所有儲存格設定為0
             for (int i = 0; i < SIZE; i++) {
                 for (int j = 0; j < SIZE; j++) {
-                    board[i][j] = 0; // 或其他初始值
+                    board[i][j] = 0;
                 }
             }
         }
@@ -542,7 +541,7 @@ public class MainActivity extends AppCompatActivity {
             if (row == SIZE) {
                 row = 0;
                 if (++col == SIZE) {
-                    return true; // 解决整个数独
+                    return true; // 解決整個數獨
                 }
             }
             if (board[row][col] != 0) {
@@ -603,7 +602,7 @@ public class MainActivity extends AppCompatActivity {
                 int row = random.nextInt(SIZE);
                 int col = random.nextInt(SIZE);
 
-                // 确保不删除同一位置的数字
+                // 確保不刪除相同位置的數字
                 int index = row * SIZE + col;
                 if (!removedIndices.contains(index)) {
                     removedIndices.add(index);
@@ -683,7 +682,7 @@ public class MainActivity extends AppCompatActivity {
                 for (int col = 0; col < 9; col++) {
                     int num = userSolution[row][col];
                     if (used[num]) {
-                        // 在行中发现重复数字
+                        // 在行中發現重複數字
                         return false;
                     }
                     used[num] = true;
@@ -696,7 +695,7 @@ public class MainActivity extends AppCompatActivity {
                 for (int row = 0; row < 9; row++) {
                     int num = userSolution[row][col];
                     if (used[num]) {
-                        // 在列中发现重复数字
+                        // 在列中發現重複數字
                         return false;
                     }
                     used[num] = true;
@@ -763,9 +762,9 @@ public class MainActivity extends AppCompatActivity {
     public class SudokuAdapter extends BaseAdapter {
         private Context context;
         private int[][] data; // 棋盤數據
-        private int filledNumberColor = Color.parseColor("#008000");// 已填数字的颜色
+        private int filledNumberColor = Color.parseColor("#008000");// 已填入數字的顏色
 
-        // 添加一个缓存用来存储已计算的单元格背景颜色
+        // 新增一個快取用來儲存已計算的儲存格背景顏色
         private SparseArray<Integer> gridColorCache = new SparseArray<>();
 
         public SudokuAdapter(Context context, int[][] data) {
@@ -882,18 +881,18 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-    // 验证用户输入的数字是否有效
+    // 驗證使用者輸入的數字是否有效
     private boolean isValidInput(int row, int col, int num) {
         // 验证数字是否在1到9的范围内
         if (num < 1 || num > 9) {
             return false;
         }
 
-        // 验证数字在当前行、列和3x3宫格内是否唯一
+        // 驗證數字在目前行、列和3x3宮格內是否唯一
         return isValidInRow(row, num) && isValidInColumn(col, num) && isValidInBox(row, col, num);
     }
 
-    // 验证数字在当前行是否唯一
+    // 驗證數字在目前行是否唯一
     private boolean isValidInRow(int row, int num) {
         for (int col = 0; col < 9; col++) {
             if (userSolution[row][col] == num) {
@@ -903,7 +902,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    // 验证数字在当前列是否唯一
+    // 驗證數字在目前列是否唯一
     private boolean isValidInColumn(int col, int num) {
         for (int row = 0; row < 9; row++) {
             if (userSolution[row][col] == num) {
@@ -913,7 +912,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    // 验证数字在当前3x3宫格内是否唯一
+    // 驗證數字在目前3x3宮格內是否唯一
     private boolean isValidInBox(int row, int col, int num) {
         int boxStartRow = row - row % 3;
         int boxStartCol = col - col % 3;
