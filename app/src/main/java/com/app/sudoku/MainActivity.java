@@ -40,6 +40,7 @@ import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -88,6 +89,7 @@ public class MainActivity extends AppCompatActivity {
             rewardedAdId = "ca-app-pub-8275397647362849/8390624394";
             interstitialAdId = "ca-app-pub-8275397647362849/9617706466";
         }
+
 
         // 初始化廣告
         MobileAds.initialize(this, initializationStatus -> {
@@ -279,6 +281,7 @@ public class MainActivity extends AppCompatActivity {
                                 mInterstitialAd.show(MainActivity.this);
                             } else {
                                 Log.d("TAG", "The interstitial ad wasn't ready yet.");
+
                             }
                         }
                     }
@@ -763,6 +766,9 @@ public class MainActivity extends AppCompatActivity {
         private Context context;
         private int[][] data; // 棋盤數據
         private int filledNumberColor = Color.parseColor("#008000");// 已填入數字的顏色
+        private int backgroundDrawable1;
+        private int backgroundDrawable2;
+        private int backgroundFocusDrawable;
 
         // 新增一個快取用來儲存已計算的儲存格背景顏色
         private SparseArray<Integer> gridColorCache = new SparseArray<>();
@@ -770,6 +776,10 @@ public class MainActivity extends AppCompatActivity {
         public SudokuAdapter(Context context, int[][] data) {
             this.context = context;
             this.data = data;
+
+            backgroundDrawable1 =  R.drawable.textview_background1; // 藍色
+            backgroundDrawable2 =  R.drawable.textview_background2; // 白色
+            backgroundFocusDrawable =  R.drawable.textview_focused_background; // 白色
         }
 
         @Override
@@ -810,7 +820,7 @@ public class MainActivity extends AppCompatActivity {
             // 首先嘗試從快取中獲取背景顏色
             int cachedColor = gridColorCache.get(position, -1);
 
-            if (cachedColor != -1) {
+            if (cachedColor != -1 ) {
                 // 如果快取中有背景顏色，則直接使用它
                 textView.setBackgroundResource(cachedColor);
             } else {
@@ -821,6 +831,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             textView.setOnClickListener(v -> {
+
                 // 處理格子點擊事件
                 handleCellClick(row, col, textView);
             });
@@ -839,9 +850,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         private void handleCellClick(int row, int col, TextView textView) {
+
+
             // 處理格子點擊事件
             if (focusedTextView != null) {
-                int gridStyle = adapter.calculateGridColor(focusRow, focusCol);
+                int gridStyle = calculateGridColor(focusRow, focusCol);
                 focusedTextView.setBackgroundResource(gridStyle);
             }
 
@@ -855,27 +868,15 @@ public class MainActivity extends AppCompatActivity {
             focusRow = row;
             focusCol = col;
 
-            focusedTextView.setBackgroundResource(R.drawable.textview_focused_background);
+            focusedTextView.setBackgroundResource(backgroundFocusDrawable);
+
         }
 
 
         // 計算3x3背景顏色
         public int calculateGridColor(int row, int col) {
-            int gridRow = row / 3;
-            int gridCol = col / 3;
-
-
-            // 根據3x3格子的位置返回對應的背景顏色
-            int gridStyle =  (gridRow * 3 + gridCol) % 2 ;
-            // 返回不同樣式 Drawable 資源
-            switch (gridStyle) {
-                case 1:
-                    return R.drawable.textview_background1; // 藍色
-                case 2:
-                    return R.drawable.textview_background2; // 白色
-                default:
-                    return R.drawable.textview_background2;
-            }
+            int gridStyle = (row / 3 + col / 3) % 2;
+            return (gridStyle == 1) ? backgroundDrawable1 : backgroundDrawable2;
 
         }
 
