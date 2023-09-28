@@ -36,6 +36,7 @@ public class StartActivity extends AppCompatActivity {
                 intent.putExtra("difficultyLevel", 2);
                 startActivity(intent);
                 break;
+
             case R.id.buttonExpert:
                 intent.putExtra("difficultyLevel", 3);
                 startActivity(intent);
