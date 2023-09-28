@@ -10,8 +10,8 @@ android {
         applicationId "com.Daniel.sudoku"
         minSdk 27
         targetSdk 33
-        versionCode 7
-        versionName "1.4.1"
+        versionCode 9
+        versionName "1.4.3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

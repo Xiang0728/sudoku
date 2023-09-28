@@ -307,12 +307,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void LoadAdsErrorDialog() {
+    private void LoadAdsErrorDialog(boolean isExit) {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.Msg);
         builder.setMessage(R.string.ErrorAdsMsg);
         builder.setPositiveButton(R.string.Exit, (dialog, which) -> {
+            dialog.dismiss();
+
+            if(!isExit)return;
+
             Intent intent = new Intent(MainActivity.this, StartActivity.class);
             startActivity(intent);
             finish();
@@ -449,6 +453,9 @@ public class MainActivity extends AppCompatActivity {
 
                 });
             }
+            else {
+                LoadAdsErrorDialog(true);
+            }
 
             wrongAnswerCount = 0;
             wrongAnswerMsg.setText(getResources().getString(R.string.mistake) + wrongAnswerCount + " / 3");
@@ -486,6 +493,9 @@ public class MainActivity extends AppCompatActivity {
 
                     InitRewardedAd();
                 });
+            }
+            else {
+                LoadAdsErrorDialog(false);
             }
             chronometer.start();
             dialog.dismiss();
