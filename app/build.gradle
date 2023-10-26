@@ -8,10 +8,10 @@ android {
 
     defaultConfig {
         applicationId "com.Daniel.sudoku"
-        minSdk 27
+        minSdk 22
         targetSdk 33
-        versionCode 9
-        versionName "1.4.3"
+        versionCode 11
+        versionName "1.6.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

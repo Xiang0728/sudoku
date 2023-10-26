@@ -689,7 +689,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            // 检查行
+            // 檢查行
             for (int row = 0; row < 9; row++) {
                 boolean[] used = new boolean[10];
                 for (int col = 0; col < 9; col++) {
@@ -702,7 +702,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            // 检查列
+            // 檢查列
             for (int col = 0; col < 9; col++) {
                 boolean[] used = new boolean[10];
                 for (int row = 0; row < 9; row++) {
@@ -789,7 +789,7 @@ public class MainActivity extends AppCompatActivity {
 
             backgroundDrawable1 =  R.drawable.textview_background1; // 藍色
             backgroundDrawable2 =  R.drawable.textview_background2; // 白色
-            backgroundFocusDrawable =  R.drawable.textview_focused_background; // 白色
+            backgroundFocusDrawable =  R.drawable.textview_focused_background;
         }
 
         @Override
@@ -806,6 +806,8 @@ public class MainActivity extends AppCompatActivity {
         public long getItemId(int position) {
             return position;
         }
+
+
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
@@ -894,7 +896,7 @@ public class MainActivity extends AppCompatActivity {
     }
     // 驗證使用者輸入的數字是否有效
     private boolean isValidInput(int row, int col, int num) {
-        // 验证数字是否在1到9的范围内
+        // 驗證數字是否在1到9的範圍內
         if (num < 1 || num > 9) {
             return false;
         }
@@ -963,6 +965,7 @@ public class MainActivity extends AppCompatActivity {
         if(isWin)showWinGameDialog();
     }
 
+
     public void ShowSnackbar( String msg, int length) {
 
         snackbar = Snackbar.make(findViewById(android.R.id.content), msg, length);
@@ -976,7 +979,7 @@ public class MainActivity extends AppCompatActivity {
         View snackbarView = snackbar.getView();
         //layout置中
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
-                (int) getResources().getDimension(R.dimen.snackbar_width) * msg.length(), // 使用资源文件中定义的宽度
+                (int) getResources().getDimension(R.dimen.snackbar_width) * msg.length(), // 使用文件中自定義寬度
                 snackbarView.getLayoutParams().height);
         params.gravity = Gravity.CENTER;
         snackbarView.setLayoutParams(params);

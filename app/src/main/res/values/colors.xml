@@ -10,7 +10,7 @@
     <color name="gray">#808080</color>
 
 
-    <color name="focusedColor">#8698FD</color> <!-- 焦點時的顏色 -->
+    <color name="focusedColor">#6789DC</color> <!-- 焦點時的顏色 -->
     <color name="defaultColor">#FFFFFF</color> <!-- 預設顏色 -->
 
     <color name="grid_line_color">#D5D5D5</color> <!-- 網格線顏色 -->
